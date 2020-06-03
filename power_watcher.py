@@ -7,7 +7,8 @@ from datetime import datetime
 from multiprocessing import Process, Pipe
 from multiprocessing.connection import Connection
 from pathlib import Path
-from pynvml import nvmlDeviceGetPowerUsage, nvmlDeviceGetHandleByIndex, nvmlDeviceGetCount, nvmlInit
+
+from pynvml import nvmlDeviceGetPowerUsage, nvmlDeviceGetHandleByIndex, nvmlInit
 
 
 class _GracefulKiller:
@@ -24,6 +25,13 @@ class _GracefulKiller:
         signal.signal(signal.SIGTERM, self.exit_gracefully)
 
     def exit_gracefully(self, signum, frame):
+        """
+        Set kill_now flag.
+
+        :param signum: required by signal.signal, not used directly
+        :param frame: required by signal.signal, not used directly
+        :return:
+        """
         self.kill_now = True
 
 
@@ -34,6 +42,11 @@ class _ValueContainer:
         self.value = 0
 
     def update(self, value):
+        """
+        Update stored value.
+        :param value: a value to store.
+        :return:
+        """
         self.value = value
 
 
@@ -59,7 +72,6 @@ def _watch_power(logfile: Path = None, sender: Connection = None, display: bool 
     with open(logfile, 'w') as f:
         while not killer.kill_now:  # exit gracefully
             power = int(nvmlDeviceGetPowerUsage(handle)) / 1000  # strangely nvidia outputs milliwatts
-                # os.popen('echo "$(nvidia-smi | grep Default | cut -c 21-23)"').read().strip())  # poll nvidia-smi
             total += power / 3600 / 1000  # convert to kWh
             if display:
                 print(f'\r{datetime.now().strftime("%H:%M:%S")} {total:.5f} kWh so far', end='')
@@ -86,7 +98,6 @@ class PowerWatcher:
 
     def __init__(self, logfile: Path, display: bool):
         """
-
         :param logfile: logfile path.
         :param display: consumption display toggle.
         """
@@ -96,20 +107,26 @@ class PowerWatcher:
 
     def __enter__(self):
         """Run upon entering the context."""
+        return self.__start__()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        """
+        Run on context exit.
+        :param exc_type: required by Context Manager syntax but not really used here
+        :param exc_value: required by Context Manager syntax but not really used
+        :param traceback: required by Context Manager syntax but not really used
+        :return:
+        """
+        self.__stop__()
+
+    def start(self):
+        """Start manually."""
         self.recv_end, send_end = Pipe(False)
         self.watcher = Process(target=_watch_power, args=(self.logfile, send_end, self.display,))
         self.watcher.start()
         return self.total
 
-    def __exit__(self, exc_type, exc_value, traceback):
-        """Run on context exit."""
-        self.watcher.terminate()
-        self.total.update(self.recv_end.recv())
-
-    def start(self):
-        """Start manually."""
-        self.__enter__()
-
     def stop(self):
         """Stop manually."""
-        self.__exit__(None, None, None)
+        self.watcher.terminate()
+        self.total.update(self.recv_end.recv())
