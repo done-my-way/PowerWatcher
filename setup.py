@@ -18,6 +18,6 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=["pynvml>=8.0.4"],
+    install_requires=["pynvml==8.0.4"],
     python_requires='>=3.6',
 )
