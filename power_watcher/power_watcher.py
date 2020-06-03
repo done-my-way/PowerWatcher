@@ -69,17 +69,18 @@ def _watch_power(logfile: Path = None, sender: Connection = None, display: bool 
     nvmlInit()
     handle = nvmlDeviceGetHandleByIndex(0)
 
-    with open(logfile, 'w') as f:
-        while not killer.kill_now:  # exit gracefully
-            power = int(nvmlDeviceGetPowerUsage(handle)) / 1000  # strangely nvidia outputs milliwatts
-            total += power / 3600 / 1000  # convert to kWh
-            if display:
-                print(f'\r{datetime.now().strftime("%H:%M:%S")} {total:.5f} kWh so far', end='')
-            if logfile is not None:
-                f.write(f'{datetime.now()} {power}\n')
-            time.sleep(1)
+    if logfile is not None:
+        f = open(logfile, 'w')
+    while not killer.kill_now:  # exit gracefully
+        power = int(nvmlDeviceGetPowerUsage(handle)) / 1000  # strangely nvidia outputs milliwatts
+        total += power / 3600 / 1000  # convert to kWh
         if display:
-            print('', end='\n')
+            print(f'\r{datetime.now().strftime("%H:%M:%S")} {total:.5f} kWh so far', end='')
+        if logfile is not None:
+            f.write(f'{datetime.now()} {power}\n')
+        time.sleep(1)
+    if display:
+        print('', end='\n')
     if sender is not None:
         sender.send(total)
 
