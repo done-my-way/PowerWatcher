@@ -96,7 +96,7 @@ class PowerWatcher:
     pw.total  # get results
     """
 
-    def __init__(self, logfile: Path, display: bool):
+    def __init__(self, logfile: Path = None, display: bool = True):
         """
         :param logfile: logfile path.
         :param display: consumption display toggle.
@@ -107,7 +107,7 @@ class PowerWatcher:
 
     def __enter__(self):
         """Run upon entering the context."""
-        return self.__start__()
+        return self.start()
 
     def __exit__(self, exc_type, exc_value, traceback):
         """
@@ -117,7 +117,7 @@ class PowerWatcher:
         :param traceback: required by Context Manager syntax but not really used
         :return:
         """
-        self.__stop__()
+        self.stop()
 
     def start(self):
         """Start manually."""
