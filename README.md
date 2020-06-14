@@ -4,7 +4,9 @@ Python3 context manager to log power consumption of an ML-pipeline running on a 
 
 ## Installation
 
+```
 pip install power-consumption
+```
 
 ## Usage
 
@@ -20,4 +22,6 @@ with PowerWatcher() as pw:
 total_consumption = pw.total  # total power consumption
 ```
 
-repo: https://github.com/WGussev/PowerWatcher
+## Repo
+
+https://github.com/WGussev/PowerWatcher
