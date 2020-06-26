@@ -50,7 +50,7 @@ class _ValueContainer:
         self.value = value
 
 
-def _watch_power(logfile: Path = None, sender: Connection = None, display: bool = True):
+def _watch_power(logfile: Path = None, sender: Connection = None, display: bool = False):
     """
     Poll GPU and log/display current power consumption.
     Update frequency: every 1 second.
@@ -60,8 +60,6 @@ def _watch_power(logfile: Path = None, sender: Connection = None, display: bool 
     :param display: display consumption in terminal.
     :return: None
     """
-    if (logfile is None) and (display is False):
-        raise ValueError('You should log and/or display consumption')
 
     total = 0
     killer = _GracefulKiller()
@@ -79,6 +77,7 @@ def _watch_power(logfile: Path = None, sender: Connection = None, display: bool 
         if logfile is not None:
             f.write(f'{datetime.now()} {power}\n')
         time.sleep(1)
+    print(total)
     if display:
         print('', end='\n')
     if sender is not None:
@@ -97,10 +96,10 @@ class PowerWatcher:
     pw.total  # get results
     """
 
-    def __init__(self, logfile: Path = None, display: bool = True):
+    def __init__(self, logfile: Path = None, display: bool = False):
         """
         :param logfile: logfile path.
-        :param display: consumption display toggle.
+        :param display: display consumption in the terminal.
         """
         self.logfile = logfile
         self.display = display
