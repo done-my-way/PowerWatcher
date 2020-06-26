@@ -1,0 +1,6 @@
+.env/
+build/
+dist/
+power_watcher.egg-info/
+__pycache__/
+settings.json
